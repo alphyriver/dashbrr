@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
@@ -25,10 +26,15 @@ func init() {
 // Logger returns a gin middleware for logging HTTP requests with zerolog
 func Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		//start := time.Now()
+		start := time.Now()
 
 		// Process request
 		c.Next()
+
+		// Only log auth-related requests to avoid noise
+		if !strings.HasPrefix(c.Request.URL.Path, "/api/auth") {
+			return
+		}
 
 		// Get the query string and redact sensitive information
 		query := c.Request.URL.RawQuery
@@ -43,6 +49,7 @@ func Logger() gin.HandlerFunc {
 					"token",
 					"password",
 					"secret",
+					"code",
 				}
 
 				// Redact sensitive parameters
@@ -63,25 +70,13 @@ func Logger() gin.HandlerFunc {
 			path = path + "?" + query
 		}
 
-		// Get error if exists
-		//var err error
-		//if len(c.Errors) > 0 {
-		//	err = c.Errors.Last()
-		//}
-
-		// Log the request with zerolog
-		//event := log.Info()
-		//if err != nil {
-		//	event = log.Error().Err(err)
-		//}
-
-		//event.
-		//	Str("method", c.Request.Method).
-		//	Str("path", path).
-		//	Int("status", c.Writer.Status()).
-		//	Dur("latency", time.Since(start)).
-		//	Str("ip", c.ClientIP()).
-		//	Int("bytes", c.Writer.Size()).
-		//	Msg("HTTP Request")
+		log.Info().
+			Str("method", c.Request.Method).
+			Str("path", path).
+			Int("status", c.Writer.Status()).
+			Dur("latency", time.Since(start)).
+			Str("ip", c.ClientIP()).
+			Int("bytes", c.Writer.Size()).
+			Msg("HTTP Request")
 	}
 }

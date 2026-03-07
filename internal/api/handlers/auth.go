@@ -427,6 +427,15 @@ func (h *AuthHandler) Callback(c *gin.Context) {
 
 	var isSecure = c.GetHeader("X-Forwarded-Proto") == "https"
 
+	log.Info().
+		Str("session_id", sessionID[:8]+"...").
+		Dur("session_ttl", sessionTTL).
+		Bool("cookie_secure", isSecure).
+		Str("x_forwarded_proto", c.GetHeader("X-Forwarded-Proto")).
+		Str("frontend_url", frontendUrl).
+		Time("token_expiry", token.Expiry).
+		Msg("OIDC callback success, setting session cookie")
+
 	c.SetCookie(
 		"session",
 		sessionID,
