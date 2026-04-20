@@ -254,6 +254,7 @@ func serveIndex(c *gin.Context) {
 	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
 	c.Header("Pragma", "no-cache")
 	c.Header("Expires", "0")
+	c.Status(http.StatusOK)
 
 	io.Copy(c.Writer, file)
 }
